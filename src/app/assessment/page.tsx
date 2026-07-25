@@ -22,6 +22,8 @@ import {
   Sparkles
 } from "lucide-react";
 import { clsx } from "clsx";
+import CodeEditor from "@/components/CodeEditor";
+import { getStarterTemplate, STARTER_TEMPLATES } from "@/lib/codeTemplates";
 
 type PageState = "IDLE" | "LOADING" | "TESTING" | "RESULTS";
 type AssessmentType = "quick" | "topic" | "full" | "self";
@@ -65,6 +67,7 @@ export default function AssessmentPage() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [codingLanguage, setCodingLanguage] = useState("javascript");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Results State
@@ -625,11 +628,29 @@ export default function AssessmentPage() {
             </div>
           )}
 
-          {(q.type === "coding" || q.type === "conceptual") && (
+          {q.type === "coding" && (
+            <div className="pt-4">
+              <CodeEditor
+                value={answers[q.id] || getStarterTemplate(codingLanguage)}
+                onChange={(code) => handleAnswer(code)}
+                language={codingLanguage}
+                onLanguageChange={(newLang) => {
+                  const currentCode = answers[q.id] || "";
+                  const isUnchangedOrEmpty = !currentCode || Object.values(STARTER_TEMPLATES).some(template => template.trim() === currentCode.trim());
+                  setCodingLanguage(newLang);
+                  if (isUnchangedOrEmpty) {
+                    handleAnswer(getStarterTemplate(newLang));
+                  }
+                }}
+              />
+            </div>
+          )}
+
+          {q.type === "conceptual" && (
             <div className="pt-4">
               <textarea
                 className="w-full h-64 bg-black/40 border border-zinc-800 rounded-2xl p-6 font-mono text-sm text-zinc-300 focus:outline-none focus:border-indigo-500 transition-colors resize-none placeholder:text-zinc-700"
-                placeholder={q.type === "coding" ? "// Write your logic here..." : "Type your detailed explanation..."}
+                placeholder="Type your detailed explanation..."
                 value={answers[q.id] || ""}
                 onChange={(e) => handleAnswer(e.target.value)}
               />
