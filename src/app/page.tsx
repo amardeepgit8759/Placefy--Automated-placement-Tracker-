@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Target, Trophy, Clock, Rocket, LineChart, Code, AlertCircle, X } from "lucide-react";
 import { useState } from "react";
+import RadialProgress from "@/components/RadialProgress";
+import ActivityHeatmap from "@/components/ActivityHeatmap";
 
 export default function Dashboard() {
   const { state } = useAppContext();
@@ -143,80 +145,107 @@ export default function Dashboard() {
             {/* Readiness Score Card */}
             <div className="glass-card p-6 md:col-span-2 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-500 group-hover:scale-110" />
-              <div className="relative z-10 flex h-full flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-zinc-400 font-medium mb-1">Current Readiness</h3>
-                    {isFutureTest && (
-                      <span className="text-[11px] font-semibold text-indigo-300 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20">
-                        Next check-in: {new Date(state.nextTestDueDate!).toLocaleDateString()}
-                      </span>
-                    )}
+              <div className="relative z-10 flex h-full flex-col justify-between space-y-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-zinc-400 font-medium mb-0.5">Current Readiness</h3>
+                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Placement Setup</span>
                   </div>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-5xl font-bold">{state.readinessScore}%</span>
-                    <span className="text-zinc-500 text-sm">Placement Setup</span>
-                  </div>
+                  {isFutureTest && (
+                    <span className="text-[11px] font-semibold text-indigo-300 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20">
+                      Next check-in: {new Date(state.nextTestDueDate!).toLocaleDateString()}
+                    </span>
+                  )}
                 </div>
-                <div className="mt-8 space-y-2">
-                  <div className="w-full bg-zinc-800/50 rounded-full h-2">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${state.readinessScore}%` }}
-                      className="bg-indigo-500 h-2 rounded-full"
-                    />
+
+                <div className="flex items-center justify-between gap-6 py-1">
+                  <div className="space-y-2">
+                    <div className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
+                      {state.readinessScore}%
+                    </div>
+                    <p className="text-xs text-zinc-400 max-w-[220px] leading-relaxed">
+                      {state.readinessScore >= 75
+                        ? "Exceptional score! You are in the high readiness tier for placement interviews."
+                        : state.readinessScore >= 40
+                        ? "Solid foundation. Keep completing roadmap tasks to strengthen weak areas."
+                        : "Initial readiness level. Complete assessments & roadmap tasks to boost your score."}
+                    </p>
                   </div>
-                  <p className="text-xs text-zinc-500 text-right">Keep practicing to improve your score.</p>
+
+                  <RadialProgress score={state.readinessScore} size={140} />
                 </div>
+
+                <p className="text-[11px] text-zinc-500 text-right pt-2 border-t border-zinc-800/50">
+                  Keep practicing to improve your score.
+                </p>
               </div>
             </div>
 
-          <div className="glass-card p-6 flex flex-col gap-4">
-             <h3 className="text-zinc-400 font-medium pb-2 border-b border-zinc-800/50">Your Profile</h3>
-             <div className="space-y-4 flex-1">
-               <div className="flex items-center gap-3">
-                 <Target className="w-5 h-5 text-indigo-400" />
-                 <div>
-                   <p className="text-xs text-zinc-500">Target Role</p>
-                   <p className="font-medium">{state.role}</p>
-                 </div>
-               </div>
-               <div className="flex items-center gap-3">
-                 <Trophy className="w-5 h-5 text-indigo-400" />
-                 <div>
-                   <p className="text-xs text-zinc-500">Current Level</p>
-                   <p className="font-medium">{state.level}</p>
-                 </div>
-               </div>
-               <div className="flex items-center gap-3">
-                 <Clock className="w-5 h-5 text-indigo-400" />
-                 <div>
-                   <p className="text-xs text-zinc-500">Timeline</p>
-                   <p className="font-medium">{state.timelineWeeks} Weeks</p>
-                 </div>
-               </div>
-             </div>
-             <Link href="/setup" className="mt-4 text-center w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-sm font-medium rounded-md transition-colors">
-               View Full Syllabus
-             </Link>
-          </div>
-          
-          <div className="md:col-span-3 mt-6">
-            <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Link href="/assessment" className="glass-card p-6 hover:border-indigo-500/50 transition-colors group">
-                <BookOpen className="w-6 h-6 text-indigo-400 mb-3 group-hover:scale-110 transition-transform" />
-                <h4 className="font-medium mb-1">Take Mock Test</h4>
-                <p className="text-xs text-zinc-400">Evaluate skills & Generate roadmap based on your current level</p>
-              </Link>
-              <Link href="/roadmap" className="glass-card p-6 hover:border-indigo-500/50 transition-colors group">
-                <Target className="w-6 h-6 text-indigo-400 mb-3 group-hover:scale-110 transition-transform" />
-                <h4 className="font-medium mb-1">View Roadmap</h4>
-                <p className="text-xs text-zinc-400">Follow your personalized 2-week daily plan</p>
+            {/* Profile Summary Card */}
+            <div className="glass-card p-6 flex flex-col gap-4">
+              <h3 className="text-zinc-400 font-medium pb-2 border-b border-zinc-800/50">Your Profile</h3>
+              <div className="space-y-4 flex-1">
+                <div className="flex items-center gap-3">
+                  <Target className="w-5 h-5 text-indigo-400" />
+                  <div>
+                    <p className="text-xs text-zinc-500">Target Role</p>
+                    <p className="font-medium">{state.role}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Trophy className="w-5 h-5 text-indigo-400" />
+                  <div>
+                    <p className="text-xs text-zinc-500">Current Level</p>
+                    <p className="font-medium">{state.level}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-indigo-400" />
+                  <div>
+                    <p className="text-xs text-zinc-500">Timeline</p>
+                    <p className="font-medium">{state.timelineWeeks} Weeks</p>
+                  </div>
+                </div>
+              </div>
+              <Link href="/setup" className="mt-4 text-center w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-sm font-medium rounded-md transition-colors">
+                View Full Syllabus
               </Link>
             </div>
-          </div>
-        </motion.div>
+            
+            {/* Daily Activity Heatmap Card */}
+            <ActivityHeatmap completionDates={state.taskCompletionDates} />
+
+            {/* Quick Actions Cards */}
+            <div className="md:col-span-3 mt-2">
+              <h3 className="text-xl font-semibold mb-4 text-white">Quick Actions</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Link href="/assessment" className="glass-card p-6 hover:border-indigo-500/50 transition-all duration-200 group relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <BookOpen className="w-6 h-6 text-indigo-400 group-hover:scale-110 transition-transform" />
+                    <ArrowRight className="w-4 h-4 text-indigo-400 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                  </div>
+                  <h4 className="font-medium mb-1 text-white group-hover:text-indigo-300 transition-colors">Take Mock Test</h4>
+                  <p className="text-xs text-zinc-400">Evaluate skills & Generate roadmap based on your current level</p>
+                </Link>
+                <Link href="/roadmap" className="glass-card p-6 hover:border-indigo-500/50 transition-all duration-200 group relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <Target className="w-6 h-6 text-indigo-400 group-hover:scale-110 transition-transform" />
+                    <ArrowRight className="w-4 h-4 text-indigo-400 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                  </div>
+                  <h4 className="font-medium mb-1 text-white group-hover:text-indigo-300 transition-colors">View Roadmap</h4>
+                  <p className="text-xs text-zinc-400">Follow your personalized 2-week daily plan</p>
+                </Link>
+                <Link href="/final" className="glass-card p-6 hover:border-indigo-500/50 transition-all duration-200 group relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <Rocket className="w-6 h-6 text-indigo-400 group-hover:scale-110 transition-transform" />
+                    <ArrowRight className="w-4 h-4 text-indigo-400 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                  </div>
+                  <h4 className="font-medium mb-1 text-white group-hover:text-indigo-300 transition-colors">Final Revision Hub</h4>
+                  <p className="text-xs text-zinc-400">Rapid 7-day sprint & final placement mock test</p>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>

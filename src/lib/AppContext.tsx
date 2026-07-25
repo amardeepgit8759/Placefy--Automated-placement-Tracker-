@@ -49,6 +49,7 @@ export interface AppState {
   completedTopics: string[];
   roadmap: any[];
   completedRoadmapTasks: string[];
+  taskCompletionDates: Record<string, string>;
   revisionPlan: any[];
   lastAssessmentDate: string | null;
   testFrequency: "weekly" | "monthly" | null;
@@ -72,6 +73,7 @@ const defaultState: AppState = {
   completedTopics: [],
   roadmap: [],
   completedRoadmapTasks: [],
+  taskCompletionDates: {},
   revisionPlan: [],
   lastAssessmentDate: null,
   testFrequency: null,

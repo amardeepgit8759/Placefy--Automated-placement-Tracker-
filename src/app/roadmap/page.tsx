@@ -84,10 +84,20 @@ export default function RoadmapPage() {
 
   const toggleTask = (taskId: string) => {
     const current = state.completedRoadmapTasks || [];
-    const updated = current.includes(taskId)
-      ? current.filter(t => t !== taskId)
-      : [...current, taskId];
-    updateState({ completedRoadmapTasks: updated });
+    const isMarkingDone = !current.includes(taskId);
+    const updated = isMarkingDone
+      ? [...current, taskId]
+      : current.filter(t => t !== taskId);
+
+    const dates = { ...(state.taskCompletionDates || {}) };
+    if (isMarkingDone) {
+      dates[taskId] = new Date().toISOString().split("T")[0];
+    }
+
+    updateState({ 
+      completedRoadmapTasks: updated,
+      taskCompletionDates: dates
+    });
   };
 
   const calculateProgress = () => {
