@@ -67,12 +67,12 @@ export default function Sidebar() {
         <div className="space-y-2">
           <div className="flex justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             <span>Readiness</span>
-            <span className="text-primary">{hasOnboarded ? state.readinessScore : 45}%</span>
+            <span className="text-primary">{state.readinessScore}%</span>
           </div>
           <div className="w-full bg-border/50 rounded-full h-1.5 overflow-hidden">
             <div 
               className="bg-primary h-full transition-all duration-1000" 
-              style={{ width: `${hasOnboarded ? state.readinessScore : 45}%` }}
+              style={{ width: `${state.readinessScore}%` }}
             ></div>
           </div>
         </div>

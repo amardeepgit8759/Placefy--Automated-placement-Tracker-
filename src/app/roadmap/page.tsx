@@ -8,24 +8,67 @@ import { useState } from "react";
 import { clsx } from "clsx";
 
 export default function RoadmapPage() {
-  const { state } = useAppContext();
+  const { state, updateState } = useAppContext();
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const hasTakenAssessment = !!(state.lastAssessmentDate || state.latestAnalysis || state.readinessScore > 0);
+
+  const handleGenerateRoadmap = async () => {
+    setIsGenerating(true);
+    try {
+      const res = await fetch("/api/generate-roadmap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          syllabus: state.syllabus,
+          analysis: state.latestAnalysis || { score: state.readinessScore, weakAreas: state.weakAreas },
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to generate roadmap");
+      const data = await res.json();
+      updateState({ roadmap: data.roadmap });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate roadmap. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   if (!state.roadmap || state.roadmap.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
-        <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center opacity-50">
-           <Calendar className="w-8 h-8 text-zinc-500" />
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 max-w-md mx-auto">
+        <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center shadow-lg">
+           <Calendar className="w-8 h-8 text-indigo-400" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-zinc-200">No roadmap found</h2>
-          <p className="text-zinc-500 max-w-xs mx-auto text-sm">Please complete your initial assessment to unlock your personalized roadmap.</p>
+          <h2 className="text-2xl font-bold text-zinc-100">
+            {hasTakenAssessment ? "Assessment Completed!" : "No Roadmap Found"}
+          </h2>
+          <p className="text-zinc-400 text-sm leading-relaxed">
+            {hasTakenAssessment 
+              ? `Your assessment is complete with a ${state.readinessScore}% readiness score. Click below to generate your personalized 14-day study roadmap.` 
+              : "Please complete your initial assessment to unlock your personalized adaptive roadmap."}
+          </p>
         </div>
-        <Link href="/assessment">
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg font-medium transition-colors text-sm">
-            Go to Assessment
+
+        {hasTakenAssessment ? (
+          <button 
+            onClick={handleGenerateRoadmap}
+            disabled={isGenerating}
+            className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-[0_0_20px_-5px_rgba(79,70,229,0.5)] flex items-center gap-2 text-sm"
+          >
+            {isGenerating ? "Generating Roadmap..." : "✨ Generate 14-Day Roadmap"}
           </button>
-        </Link>
+        ) : (
+          <Link href="/assessment">
+            <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg font-medium transition-colors text-sm">
+              Go to Assessment
+            </button>
+          </Link>
+        )}
       </div>
     );
   }

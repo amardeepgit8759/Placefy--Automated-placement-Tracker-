@@ -103,6 +103,7 @@ export default function AssessmentPage() {
       // Update global state
       updateState({ 
         readinessScore: analysisData.score,
+        latestAnalysis: analysisData,
         lastAssessmentDate: new Date().toLocaleDateString(),
         weakAreas: analysisData.weaknesses || []
       });
@@ -374,7 +375,7 @@ export default function AssessmentPage() {
            
            {q.type === "mcq" && q.options && (
             <div className="grid grid-cols-1 gap-3 pt-4">
-              {q.options.map((opt, i) => (
+              {q.options.map((opt: string, i: number) => (
                 <button
                   key={i}
                   onClick={() => handleAnswer(opt)}

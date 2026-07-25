@@ -12,6 +12,22 @@ export interface SyllabusItem {
   subtopics: string[];
 }
 
+export interface AnalysisData {
+  score: number;
+  level: string;
+  feedback: string;
+  domainScores: Record<string, number>;
+  strengths: string[];
+  weaknesses: string[];
+  insights: string[];
+  actionableSteps: string[];
+  companyMatch: {
+    percentage: number;
+    expectedLevel: string;
+    gaps: string[];
+  };
+}
+
 export interface AppState {
   role: RoleOptions | null;
   level: LevelOptions | null;
@@ -25,6 +41,7 @@ export interface AppState {
     gaps: string[];
     strategy: string;
   } | null;
+  latestAnalysis: AnalysisData | null;
   syllabus: SyllabusItem[];
   completedTopics: string[];
   roadmap: any[];
@@ -40,6 +57,7 @@ const defaultState: AppState = {
   timelineWeeks: 4,
   readinessScore: 0,
   mentorAnalysis: null,
+  latestAnalysis: null,
   syllabus: [],
   completedTopics: [],
   roadmap: [],

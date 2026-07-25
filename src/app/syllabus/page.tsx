@@ -1,3 +1,5 @@
+"use client";
+
 import { useAppContext } from "@/lib/AppContext";
 import { motion } from "framer-motion";
 import { 

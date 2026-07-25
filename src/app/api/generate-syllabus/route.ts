@@ -5,7 +5,8 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: Request) {
   try {
-    const { role, level, timelineWeeks } = await req.json();
+    const { role, level, targetCompany, company: companyBody, timelineWeeks } = await req.json();
+    const company = targetCompany || companyBody || "Top Tech Companies";
 
     if (!role || !level) {
       return NextResponse.json({ error: "Missing role or level" }, { status: 400 });

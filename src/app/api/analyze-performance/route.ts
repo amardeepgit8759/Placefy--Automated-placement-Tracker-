@@ -22,10 +22,23 @@ ${JSON.stringify(answers)}
 Return ONLY a valid JSON object with the exact following structure (no markdown formatting or wrappers):
 {
   "score": 85, // percentage integer 0-100 indicating readiness based on answers
+  "level": "Intermediate", // Beginner, Intermediate, or Advanced
   "feedback": "Overall constructive feedback (2-3 sentences max)",
+  "domainScores": {
+    "DSA": 90,
+    "Core Subjects": 75,
+    "Aptitude": 80,
+    "Development": 85
+  },
   "strengths": ["Strength 1", "Strength 2"],
   "weaknesses": ["Weakness 1", "Weakness 2"],
-  "skillGaps": ["Gap 1", "Gap 2"]
+  "insights": ["Insight 1", "Insight 2"],
+  "actionableSteps": ["Step 1", "Step 2"],
+  "companyMatch": {
+    "percentage": 78,
+    "expectedLevel": "Senior",
+    "gaps": ["Gap 1", "Gap 2"]
+  }
 }`;
 
     const response = await ai.models.generateContent({
