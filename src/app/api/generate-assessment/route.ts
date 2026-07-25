@@ -1,21 +1,54 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+
+const FALLBACK_QUESTIONS = [
+  {
+    id: "q1",
+    question: "Given an integer array `nums`, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.",
+    type: "coding",
+    category: "DSA (Arrays)"
+  },
+  {
+    id: "q2",
+    question: "What is the time complexity of searching an element in a balanced Binary Search Tree (BST)?",
+    type: "mcq",
+    options: ["O(1)", "O(n)", "O(log n)", "O(n log n)"],
+    category: "DSA"
+  },
+  {
+    id: "q3",
+    question: "Explain the difference between Process and Thread in Operating Systems, including memory sharing.",
+    type: "conceptual",
+    category: "Operating Systems"
+  },
+  {
+    id: "q4",
+    question: "Which of the following normalization forms removes partial functional dependency in DBMS?",
+    type: "mcq",
+    options: ["1NF", "2NF", "3NF", "BCNF"],
+    category: "DBMS"
+  },
+  {
+    id: "q5",
+    question: "Write a function to reverse a linked list iteratively or recursively.",
+    type: "coding",
+    category: "DSA (LinkedList)"
+  }
+];
 
 export async function POST(req: Request) {
   try {
     const { 
-      syllabus, 
+      syllabus: rawSyllabus, 
       type = "quick", 
       difficulty = "Medium", 
       duration = 15, 
       topics = [] 
     } = await req.json();
 
-    if (!syllabus) {
-      return NextResponse.json({ error: "Missing syllabus" }, { status: 400 });
-    }
+    const syllabus = rawSyllabus || "General Placement Preparation: Data Structures & Algorithms, DBMS, Operating Systems, Computer Networks, OOPS, Quantitative Aptitude";
 
     // Determine question count and logic based on type
     let questionCount = 5;
@@ -26,10 +59,15 @@ export async function POST(req: Request) {
       focusText = "a quick mixed-topic readiness check";
     } else if (type === "topic") {
       questionCount = duration >= 60 ? 20 : duration >= 30 ? 12 : 8;
-      focusText = `a specialized deep-dive into ${topics.join(", ")} at ${difficulty} difficulty`;
+      focusText = `a specialized deep-dive into ${topics.length > 0 ? topics.join(", ") : "core engineering topics"} at ${difficulty} difficulty`;
     } else if (type === "full") {
       questionCount = 20;
       focusText = "a comprehensive full mock placement simulation covering DSA, Core Subjects, and Aptitude";
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      console.warn("GEMINI_API_KEY missing, serving fallback assessment questions.");
+      return NextResponse.json(FALLBACK_QUESTIONS);
     }
 
     const prompt = `Based on the following syllabus and context, generate exactly ${questionCount} interview questions. 
@@ -70,13 +108,16 @@ export async function POST(req: Request) {
 
     try {
       const data = JSON.parse(text);
-      return NextResponse.json(data);
+      if (Array.isArray(data) && data.length > 0) {
+        return NextResponse.json(data);
+      }
+      return NextResponse.json(FALLBACK_QUESTIONS);
     } catch (e) {
       console.error("Failed to parse JSON:", text);
-      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+      return NextResponse.json(FALLBACK_QUESTIONS);
     }
   } catch (error) {
     console.error("AI Gen Error:", error);
-    return NextResponse.json({ error: "Failed to generate assessment" }, { status: 500 });
+    return NextResponse.json(FALLBACK_QUESTIONS);
   }
 }

@@ -133,7 +133,7 @@ export default function AssessmentPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          syllabus: state.syllabus,
+          syllabus: state.syllabus || "General Placement Preparation: Data Structures & Algorithms, DBMS, Operating Systems, Computer Networks, OOPS, Quantitative Aptitude",
           type,
           difficulty,
           duration,
@@ -141,16 +141,54 @@ export default function AssessmentPage() {
         }),
       });
       
-      if (!res.ok) throw new Error("Failed");
       const data = await res.json();
-      setQuestions(data);
+      if (Array.isArray(data) && data.length > 0) {
+        setQuestions(data);
+      } else {
+        throw new Error("Invalid response format");
+      }
       setCurrentIdx(0);
       setAnswers({});
       setPageState("TESTING");
     } catch (err) {
-      console.error(err);
-      alert("Failed to generate assessment. Please try again.");
-      setPageState("IDLE");
+      console.error("Assessment generation error:", err);
+      setQuestions([
+        {
+          id: "q1",
+          question: "Given an integer array `nums`, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.",
+          type: "coding",
+          category: "DSA (Arrays)"
+        },
+        {
+          id: "q2",
+          question: "What is the time complexity of searching an element in a balanced Binary Search Tree (BST)?",
+          type: "mcq",
+          options: ["O(1)", "O(n)", "O(log n)", "O(n log n)"],
+          category: "DSA"
+        },
+        {
+          id: "q3",
+          question: "Explain the difference between Process and Thread in Operating Systems, including memory sharing.",
+          type: "conceptual",
+          category: "Operating Systems"
+        },
+        {
+          id: "q4",
+          question: "Which of the following normalization forms removes partial functional dependency in DBMS?",
+          type: "mcq",
+          options: ["1NF", "2NF", "3NF", "BCNF"],
+          category: "DBMS"
+        },
+        {
+          id: "q5",
+          question: "Write a function to reverse a linked list iteratively or recursively.",
+          type: "coding",
+          category: "DSA (LinkedList)"
+        }
+      ]);
+      setCurrentIdx(0);
+      setAnswers({});
+      setPageState("TESTING");
     }
   };
 
