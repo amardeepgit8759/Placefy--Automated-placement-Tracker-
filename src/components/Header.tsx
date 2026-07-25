@@ -12,8 +12,7 @@ export default function Header() {
   const getPageTitle = () => {
     switch (pathname) {
       case "/": return "Dashboard";
-      case "/setup": return "Setup";
-      case "/syllabus": return "Syllabus details";
+      case "/setup": return "Syllabus";
       case "/assessment": return "Assessment";
       case "/analysis": return "Analysis";
       case "/roadmap": return "Roadmap";

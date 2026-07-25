@@ -196,7 +196,7 @@ export default function Dashboard() {
                  </div>
                </div>
              </div>
-             <Link href="/syllabus" className="mt-4 text-center w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-sm font-medium rounded-md transition-colors">
+             <Link href="/setup" className="mt-4 text-center w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-sm font-medium rounded-md transition-colors">
                View Full Syllabus
              </Link>
           </div>

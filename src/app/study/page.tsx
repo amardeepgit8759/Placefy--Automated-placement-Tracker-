@@ -120,7 +120,7 @@ export default function StudyPage() {
               </p>
             </div>
           </div>
-          <Link href="/syllabus">
+          <Link href="/setup">
             <button className="text-xs font-semibold text-indigo-300 hover:text-white px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-lg border border-indigo-500/20 transition-all flex items-center gap-1.5">
               View Syllabus <ExternalLink className="w-3.5 h-3.5" />
             </button>

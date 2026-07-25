@@ -21,7 +21,7 @@ export default function Sidebar() {
 
   const links = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/setup", label: "Syllabus", icon: BookOpen }, // We map Syllabus to /setup for now based on the mockup context
+    { href: "/setup", label: "Syllabus", icon: BookOpen },
     { href: "/assessment", label: "Assessment", icon: ClipboardCheck },
     { href: "/analysis", label: "Analysis", icon: BarChart2 },
     { href: "/roadmap", label: "Roadmap", icon: Map },
