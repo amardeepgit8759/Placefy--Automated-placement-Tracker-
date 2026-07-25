@@ -48,6 +48,7 @@ export interface AppState {
   syllabus: SyllabusItem[];
   completedTopics: string[];
   roadmap: any[];
+  completedRoadmapTasks: string[];
   lastAssessmentDate: string | null;
   weakAreas: string[];
   theme: "light" | "dark" | "midnight";
@@ -67,6 +68,7 @@ const defaultState: AppState = {
   syllabus: [],
   completedTopics: [],
   roadmap: [],
+  completedRoadmapTasks: [],
   lastAssessmentDate: null,
   weakAreas: [],
   theme: "dark",

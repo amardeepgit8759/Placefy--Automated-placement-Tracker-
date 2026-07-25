@@ -9,9 +9,9 @@ import { clsx } from "clsx";
 
 export default function RoadmapPage() {
   const { state, updateState } = useAppContext();
-  const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const completedTasks = state.completedRoadmapTasks || [];
   const hasTakenAssessment = !!(state.lastAssessmentDate || state.latestAnalysis || state.readinessScore > 0);
 
   const handleGenerateRoadmap = async () => {
@@ -74,9 +74,11 @@ export default function RoadmapPage() {
   }
 
   const toggleTask = (taskId: string) => {
-    setCompletedTasks(prev => 
-      prev.includes(taskId) ? prev.filter(t => t !== taskId) : [...prev, taskId]
-    );
+    const current = state.completedRoadmapTasks || [];
+    const updated = current.includes(taskId)
+      ? current.filter(t => t !== taskId)
+      : [...current, taskId];
+    updateState({ completedRoadmapTasks: updated });
   };
 
   const calculateProgress = () => {

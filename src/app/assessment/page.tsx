@@ -18,7 +18,8 @@ import {
   Circle,
   X,
   SlidersHorizontal,
-  UserCheck
+  UserCheck,
+  Sparkles
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -68,6 +69,59 @@ export default function AssessmentPage() {
   
   // Results State
   const [results, setResults] = useState<any>(null);
+  const [roadmapAutoUpdated, setRoadmapAutoUpdated] = useState(false);
+
+  const autoUpdateRoadmap = async (analysisData: any) => {
+    if (!state.roadmap || state.roadmap.length === 0) return;
+
+    try {
+      const res = await fetch("/api/generate-roadmap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          syllabus: state.syllabus,
+          analysis: analysisData,
+        }),
+      });
+
+      if (!res.ok) return;
+      const data = await res.json();
+      const newRoadmap = data.roadmap || [];
+
+      // Preserve task completion history by checking matching task texts
+      const oldCompletedTaskTexts = new Set<string>();
+      state.roadmap.forEach((dayPlan: any) => {
+        dayPlan.tasks?.forEach((taskText: string, taskIdx: number) => {
+          const taskId = `day${dayPlan.day}-task${taskIdx}`;
+          if (state.completedRoadmapTasks?.includes(taskId)) {
+            oldCompletedTaskTexts.add(taskText.toLowerCase().trim());
+          }
+        });
+      });
+
+      const newCompletedTaskIds: string[] = [];
+      newRoadmap.forEach((dayPlan: any) => {
+        dayPlan.tasks?.forEach((taskText: string, taskIdx: number) => {
+          if (oldCompletedTaskTexts.has(taskText.toLowerCase().trim())) {
+            newCompletedTaskIds.push(`day${dayPlan.day}-task${taskIdx}`);
+          }
+        });
+      });
+
+      const updatedCompleted = newCompletedTaskIds.length > 0
+        ? newCompletedTaskIds
+        : (state.completedRoadmapTasks || []);
+
+      updateState({
+        roadmap: newRoadmap,
+        completedRoadmapTasks: updatedCompleted,
+      });
+
+      setRoadmapAutoUpdated(true);
+    } catch (e) {
+      console.error("Auto roadmap update error:", e);
+    }
+  };
 
   const startAssessment = async (type: AssessmentType) => {
     setPageState("LOADING");
@@ -128,6 +182,9 @@ export default function AssessmentPage() {
         lastAssessmentDate: new Date().toLocaleDateString(),
         weakAreas: analysisData.weaknesses || []
       });
+
+      // Auto update roadmap if roadmap exists
+      autoUpdateRoadmap(analysisData);
       
       setPageState("RESULTS");
     } catch (err) {
@@ -190,6 +247,10 @@ export default function AssessmentPage() {
     });
 
     setResults(analysisData);
+
+    // Auto update roadmap if roadmap exists
+    autoUpdateRoadmap(analysisData);
+
     setPageState("RESULTS");
   };
 
@@ -591,7 +652,22 @@ export default function AssessmentPage() {
     if (!results) return null;
     return (
       <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in duration-500 py-4">
-         <div className="text-center space-y-2">
+        {roadmapAutoUpdated && (
+          <div className="glass-card p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-between gap-4 text-xs font-semibold text-indigo-200">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+              <span>Roadmap updated automatically based on your latest assessment results!</span>
+            </div>
+            <button 
+              onClick={() => setRoadmapAutoUpdated(false)} 
+              className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        <div className="text-center space-y-2">
             <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.4em]">Assessment Complete</span>
             <h1 className="text-4xl font-black text-white">Your Results</h1>
          </div>
