@@ -50,6 +50,8 @@ export interface AppState {
   roadmap: any[];
   completedRoadmapTasks: string[];
   lastAssessmentDate: string | null;
+  testFrequency: "weekly" | "monthly" | null;
+  nextTestDueDate: string | null;
   weakAreas: string[];
   theme: "light" | "dark" | "midnight";
 }
@@ -70,6 +72,8 @@ const defaultState: AppState = {
   roadmap: [],
   completedRoadmapTasks: [],
   lastAssessmentDate: null,
+  testFrequency: null,
+  nextTestDueDate: null,
   weakAreas: [],
   theme: "dark",
 };

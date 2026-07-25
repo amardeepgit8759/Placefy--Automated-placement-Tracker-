@@ -156,6 +156,12 @@ export default function AssessmentPage() {
     setAnswers({ ...answers, [q.id]: answer });
   };
 
+  const computeNextDueDate = () => {
+    if (!state.testFrequency) return state.nextTestDueDate;
+    const days = state.testFrequency === "weekly" ? 7 : 30;
+    return new Date(Date.now() + days * 86400000).toISOString();
+  };
+
   const submitTest = async () => {
     setIsSubmitting(true);
     try {
@@ -175,11 +181,14 @@ export default function AssessmentPage() {
       
       setResults(analysisData);
       
+      const newNextDueDate = computeNextDueDate();
+
       // Update global state
       updateState({ 
         readinessScore: analysisData.score,
         latestAnalysis: analysisData,
         lastAssessmentDate: new Date().toLocaleDateString(),
+        nextTestDueDate: newNextDueDate,
         weakAreas: analysisData.weaknesses || []
       });
 
@@ -237,12 +246,15 @@ export default function AssessmentPage() {
       }
     };
 
+    const newNextDueDate = computeNextDueDate();
+
     updateState({ 
       readinessScore: avgScore,
       selfRatings,
       assessmentMethod: "self_rating",
       latestAnalysis: analysisData,
       lastAssessmentDate: new Date().toLocaleDateString(),
+      nextTestDueDate: newNextDueDate,
       weakAreas: weak
     });
 
@@ -281,7 +293,7 @@ export default function AssessmentPage() {
   const renderDashboard = () => (
     <div className="space-y-10">
       {/* Dashboard Top Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-card p-5 rounded-2xl border border-zinc-800/50 bg-zinc-900/50 flex flex-col items-center text-center">
            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Readiness Score</span>
            <span className="text-3xl font-black text-indigo-400">{state.readinessScore}%</span>
@@ -293,7 +305,15 @@ export default function AssessmentPage() {
            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Last Test</span>
            <span className="text-sm font-semibold text-zinc-200">{state.lastAssessmentDate || "Not taken yet"}</span>
         </div>
-        <div className="glass-card p-5 rounded-2xl border border-zinc-800/50 bg-zinc-900/50 flex flex-col items-center text-center md:col-span-2">
+        <div className="glass-card p-5 rounded-2xl border border-zinc-800/50 bg-zinc-900/50 flex flex-col items-center text-center justify-center">
+           <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Next Test Due</span>
+           <span className="text-xs font-semibold text-indigo-300">
+             {state.testFrequency && state.nextTestDueDate
+               ? `${new Date(state.nextTestDueDate).toLocaleDateString()} (${state.testFrequency === "weekly" ? "Weekly" : "Monthly"})`
+               : "No schedule set (Configure in Roadmap)"}
+           </span>
+        </div>
+        <div className="glass-card p-5 rounded-2xl border border-zinc-800/50 bg-zinc-900/50 flex flex-col items-center text-center justify-center">
            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Weak Areas</span>
            <div className="flex flex-wrap justify-center gap-1.5">
               {state.weakAreas?.length > 0 ? (

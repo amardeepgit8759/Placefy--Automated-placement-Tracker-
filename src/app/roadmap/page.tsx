@@ -2,7 +2,7 @@
 
 import { useAppContext } from "@/lib/AppContext";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Circle, Calendar, Link as LinkIcon, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, Calendar, Link as LinkIcon, Sparkles, Clock } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { clsx } from "clsx";
@@ -13,6 +13,15 @@ export default function RoadmapPage() {
 
   const completedTasks = state.completedRoadmapTasks || [];
   const hasTakenAssessment = !!(state.lastAssessmentDate || state.latestAnalysis || state.readinessScore > 0);
+
+  const handleSetFrequency = (freq: "weekly" | "monthly") => {
+    const days = freq === "weekly" ? 7 : 30;
+    const dueDate = new Date(Date.now() + days * 86400000).toISOString();
+    updateState({
+      testFrequency: freq,
+      nextTestDueDate: dueDate
+    });
+  };
 
   const handleGenerateRoadmap = async () => {
     setIsGenerating(true);
@@ -101,15 +110,50 @@ export default function RoadmapPage() {
           </h1>
           <p className="text-zinc-400 text-sm">Your targeted 14-day plan based on your performance analysis.</p>
         </div>
-        <div className="glass-card px-6 py-4 rounded-2xl border border-zinc-800/50 bg-zinc-900/50 flex flex-col items-center min-w-[160px]">
-           <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Total Progress</span>
-           <span className="text-3xl font-bold text-indigo-400">{progress}%</span>
-           <div className="w-full bg-zinc-800 rounded-full h-1 mt-3">
-              <div 
-                className="bg-indigo-500 h-1 rounded-full transition-all duration-500" 
-                style={{ width: `${progress}%` }} 
-              />
-           </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Test Schedule Control */}
+          <div className="glass-card px-4 py-3 rounded-2xl border border-zinc-800/50 bg-zinc-900/50 flex flex-col gap-1.5 min-w-[200px]">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1">
+              <Clock className="w-3 h-3 text-indigo-400" /> Test Schedule
+            </span>
+            <div className="flex gap-1.5 p-1 bg-black/40 rounded-xl border border-zinc-800">
+              <button
+                onClick={() => handleSetFrequency("weekly")}
+                className={clsx(
+                  "flex-1 py-1 px-3 rounded-lg text-xs font-bold transition-all",
+                  state.testFrequency === "weekly"
+                    ? "bg-indigo-600 text-white shadow"
+                    : "text-zinc-500 hover:text-zinc-300"
+                )}
+              >
+                Weekly
+              </button>
+              <button
+                onClick={() => handleSetFrequency("monthly")}
+                className={clsx(
+                  "flex-1 py-1 px-3 rounded-lg text-xs font-bold transition-all",
+                  state.testFrequency === "monthly"
+                    ? "bg-indigo-600 text-white shadow"
+                    : "text-zinc-500 hover:text-zinc-300"
+                )}
+              >
+                Monthly
+              </button>
+            </div>
+          </div>
+
+          {/* Progress Card */}
+          <div className="glass-card px-6 py-4 rounded-2xl border border-zinc-800/50 bg-zinc-900/50 flex flex-col items-center min-w-[150px]">
+             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Total Progress</span>
+             <span className="text-3xl font-bold text-indigo-400">{progress}%</span>
+             <div className="w-full bg-zinc-800 rounded-full h-1 mt-3">
+                <div 
+                  className="bg-indigo-500 h-1 rounded-full transition-all duration-500" 
+                  style={{ width: `${progress}%` }} 
+                />
+             </div>
+          </div>
         </div>
       </div>
 

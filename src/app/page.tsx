@@ -3,12 +3,21 @@
 import { useAppContext } from "@/lib/AppContext";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Target, Trophy, Clock, Rocket, LineChart, Code } from "lucide-react";
+import { ArrowRight, BookOpen, Target, Trophy, Clock, Rocket, LineChart, Code, AlertCircle, X } from "lucide-react";
+import { useState } from "react";
 
 export default function Dashboard() {
   const { state } = useAppContext();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   
   const hasOnboarded = state.role !== null;
+
+  const isTestDue = !bannerDismissed &&
+    !!state.nextTestDueDate &&
+    new Date(state.nextTestDueDate) <= new Date();
+
+  const isFutureTest = !!state.nextTestDueDate &&
+    new Date(state.nextTestDueDate) > new Date();
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -89,34 +98,78 @@ export default function Dashboard() {
           </div>
         </motion.div>
       ) : (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-        >
-          {/* Readiness Score Card */}
-          <div className="glass-card p-6 md:col-span-2 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-500 group-hover:scale-110" />
-            <div className="relative z-10 flex h-full flex-col justify-between">
-              <div>
-                <h3 className="text-zinc-400 font-medium mb-1">Current Readiness</h3>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold">{state.readinessScore}%</span>
-                  <span className="text-zinc-500 text-sm">Placement Setup</span>
+        <div className="space-y-6">
+          {/* Test Due Reminder Banner */}
+          {isTestDue && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-card p-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-amber-500/20 rounded-xl text-amber-400">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">
+                    Time for your {state.testFrequency === "weekly" ? "Weekly" : "Monthly"} check-in test!
+                  </h3>
+                  <p className="text-xs text-amber-200/80">
+                    Your scheduled test was due on {new Date(state.nextTestDueDate!).toLocaleDateString()}. Take an assessment now to update your readiness score and adaptive roadmap.
+                  </p>
                 </div>
               </div>
-              <div className="mt-8 space-y-2">
-                <div className="w-full bg-zinc-800/50 rounded-full h-2">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${state.readinessScore}%` }}
-                    className="bg-indigo-500 h-2 rounded-full"
-                  />
+              <div className="flex items-center gap-3">
+                <Link href="/assessment">
+                  <button className="bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md">
+                    Take Test Now
+                  </button>
+                </Link>
+                <button
+                  onClick={() => setBannerDismissed(true)}
+                  className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          >
+            {/* Readiness Score Card */}
+            <div className="glass-card p-6 md:col-span-2 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-500 group-hover:scale-110" />
+              <div className="relative z-10 flex h-full flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start">
+                    <h3 className="text-zinc-400 font-medium mb-1">Current Readiness</h3>
+                    {isFutureTest && (
+                      <span className="text-[11px] font-semibold text-indigo-300 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20">
+                        Next check-in: {new Date(state.nextTestDueDate!).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-5xl font-bold">{state.readinessScore}%</span>
+                    <span className="text-zinc-500 text-sm">Placement Setup</span>
+                  </div>
                 </div>
-                <p className="text-xs text-zinc-500 text-right">Keep practicing to improve your score.</p>
+                <div className="mt-8 space-y-2">
+                  <div className="w-full bg-zinc-800/50 rounded-full h-2">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${state.readinessScore}%` }}
+                      className="bg-indigo-500 h-2 rounded-full"
+                    />
+                  </div>
+                  <p className="text-xs text-zinc-500 text-right">Keep practicing to improve your score.</p>
+                </div>
               </div>
             </div>
-          </div>
 
           <div className="glass-card p-6 flex flex-col gap-4">
              <h3 className="text-zinc-400 font-medium pb-2 border-b border-zinc-800/50">Your Profile</h3>
@@ -163,8 +216,8 @@ export default function Dashboard() {
               </Link>
             </div>
           </div>
-
         </motion.div>
+        </div>
       )}
     </div>
   );
