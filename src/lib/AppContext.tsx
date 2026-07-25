@@ -33,6 +33,7 @@ export interface AppState {
   level: LevelOptions | null;
   targetCompany: string | null;
   timelineWeeks: number | null;
+  leetcodeUsername: string | null;
   readinessScore: number;
   mentorAnalysis: {
     difficulty: string;
@@ -42,6 +43,8 @@ export interface AppState {
     strategy: string;
   } | null;
   latestAnalysis: AnalysisData | null;
+  selfRatings: Record<string, number> | null;
+  assessmentMethod: "test" | "self_rating" | null;
   syllabus: SyllabusItem[];
   completedTopics: string[];
   roadmap: any[];
@@ -55,9 +58,12 @@ const defaultState: AppState = {
   level: null,
   targetCompany: null,
   timelineWeeks: 4,
+  leetcodeUsername: null,
   readinessScore: 0,
   mentorAnalysis: null,
   latestAnalysis: null,
+  selfRatings: null,
+  assessmentMethod: null,
   syllabus: [],
   completedTopics: [],
   roadmap: [],

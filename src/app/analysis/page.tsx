@@ -16,7 +16,8 @@ import {
   CheckCircle2,
   Lightbulb,
   MousePointerClick,
-  RefreshCw
+  RefreshCw,
+  Code
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -98,9 +99,50 @@ export default function AnalysisPage() {
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [isDemo, setIsDemo] = useState(false);
 
+  // LeetCode Stats State
+  const [leetcodeData, setLeetcodeData] = useState<{
+    totalSolved: number;
+    easySolved: number;
+    mediumSolved: number;
+    hardSolved: number;
+    username: string;
+  } | null>(null);
+  const [leetcodeLoading, setLeetcodeLoading] = useState(false);
+  const [leetcodeError, setLeetcodeError] = useState<string | null>(null);
+
   useEffect(() => {
     analyzeResults();
   }, []);
+
+  useEffect(() => {
+    if (state.leetcodeUsername) {
+      fetchLeetCodeStats(state.leetcodeUsername);
+    }
+  }, [state.leetcodeUsername]);
+
+  const fetchLeetCodeStats = async (username: string) => {
+    setLeetcodeLoading(true);
+    setLeetcodeError(null);
+    try {
+      const res = await fetch("/api/leetcode-stats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setLeetcodeError(data.error || "User not found");
+        setLeetcodeData(null);
+      } else {
+        setLeetcodeData(data);
+      }
+    } catch (e) {
+      setLeetcodeError("Failed to fetch stats");
+      setLeetcodeData(null);
+    } finally {
+      setLeetcodeLoading(false);
+    }
+  };
 
   const analyzeResults = async () => {
     setLoading(true);
@@ -278,6 +320,52 @@ export default function AnalysisPage() {
           </motion.div>
         ))}
       </div>
+      {/* LeetCode Solved Problems Card */}
+      {state.leetcodeUsername && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card p-5 rounded-2xl border border-zinc-800/50 bg-zinc-900/50 flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
+              <Code className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-zinc-100 text-sm">LeetCode Stats</h3>
+                <span className="text-xs text-indigo-400 font-mono">@{state.leetcodeUsername}</span>
+              </div>
+              <p className="text-xs text-zinc-500">Live submission breakdown from LeetCode public profile</p>
+            </div>
+          </div>
+
+          {leetcodeLoading ? (
+            <div className="flex items-center gap-2 text-xs text-zinc-400 font-medium">
+              <Loader2 className="w-4 h-4 animate-spin text-amber-400" /> Fetching stats...
+            </div>
+          ) : leetcodeError ? (
+            <div className="flex items-center gap-2 text-xs text-amber-400/90 font-medium bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
+              <AlertCircle className="w-4 h-4 text-amber-400" /> {leetcodeError}
+            </div>
+          ) : leetcodeData ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="px-3 py-1.5 rounded-xl bg-zinc-800 border border-zinc-700/60 text-xs font-bold text-white">
+                Total: <span className="text-indigo-400 font-extrabold">{leetcodeData.totalSolved}</span>
+              </div>
+              <div className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-400">
+                Easy: {leetcodeData.easySolved}
+              </div>
+              <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-bold text-amber-400">
+                Medium: {leetcodeData.mediumSolved}
+              </div>
+              <div className="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs font-bold text-rose-400">
+                Hard: {leetcodeData.hardSolved}
+              </div>
+            </div>
+          ) : null}
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Performance Breakdown - Radar Chart */}

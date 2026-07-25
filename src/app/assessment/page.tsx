@@ -16,15 +16,26 @@ import {
   Zap, 
   ListChecks,
   Circle,
-  X
+  X,
+  SlidersHorizontal,
+  UserCheck
 } from "lucide-react";
 import { clsx } from "clsx";
 
 type PageState = "IDLE" | "LOADING" | "TESTING" | "RESULTS";
-type AssessmentType = "quick" | "topic" | "full";
+type AssessmentType = "quick" | "topic" | "full" | "self";
 
 const TOPICS_LIST = [
   "Arrays", "Strings", "Recursion", "DBMS", "OS", "CN", "OOPS", "Aptitude", "System Design"
+];
+
+const DOMAINS_SELF = [
+  { key: "DSA", label: "DSA", desc: "Arrays, Trees, Graphs, DP, Algorithms" },
+  { key: "Core CS", label: "Core CS", desc: "DBMS, Operating Systems, Networks, OOPS" },
+  { key: "Aptitude", label: "Aptitude", desc: "Quantitative, Logical Reasoning, Verbal" },
+  { key: "Communication", label: "Communication", desc: "Interview Articulation, Soft Skills" },
+  { key: "Dev Skills", label: "Dev Skills", desc: "Web/Mobile Development, Git, Projects" },
+  { key: "System Design", label: "System Design", desc: "High & Low Level Architecture, Scalability" }
 ];
 
 export default function AssessmentPage() {
@@ -38,6 +49,16 @@ export default function AssessmentPage() {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [difficulty, setDifficulty] = useState("Medium");
   const [duration, setDuration] = useState(30);
+
+  // Self Rating State
+  const [selfRatings, setSelfRatings] = useState<Record<string, number>>({
+    "DSA": state.selfRatings?.["DSA"] ?? 60,
+    "Core CS": state.selfRatings?.["Core CS"] ?? 60,
+    "Aptitude": state.selfRatings?.["Aptitude"] ?? 60,
+    "Communication": state.selfRatings?.["Communication"] ?? 60,
+    "Dev Skills": state.selfRatings?.["Dev Skills"] ?? 60,
+    "System Design": state.selfRatings?.["System Design"] ?? 60
+  });
   
   // Actual Test State
   const [questions, setQuestions] = useState<any[]>([]);
@@ -117,6 +138,61 @@ export default function AssessmentPage() {
     }
   };
 
+  const handleSelfRatingSubmit = () => {
+    const values = Object.values(selfRatings);
+    const total = values.reduce((sum, val) => sum + val, 0);
+    const avgScore = Math.round(total / values.length);
+
+    const weak = Object.entries(selfRatings)
+      .filter(([_, rating]) => rating < 60)
+      .map(([domain]) => domain);
+
+    const strengths = Object.entries(selfRatings)
+      .filter(([_, rating]) => rating >= 75)
+      .map(([domain]) => domain);
+
+    const analysisData = {
+      score: avgScore,
+      level: avgScore >= 80 ? "Advanced" : avgScore >= 50 ? "Intermediate" : "Beginner",
+      feedback: `Self-evaluation completed based on your domain confidence ratings. Overall readiness score: ${avgScore}%.`,
+      domainScores: {
+        "DSA": selfRatings["DSA"] || 60,
+        "Core Subjects": selfRatings["Core CS"] || 60,
+        "Aptitude": selfRatings["Aptitude"] || 60,
+        "Development": selfRatings["Dev Skills"] || 60,
+        "Communication": selfRatings["Communication"] || 60,
+        "System Design": selfRatings["System Design"] || 60
+      },
+      strengths: strengths.length > 0 ? strengths : ["Self Awareness"],
+      weaknesses: weak.length > 0 ? weak : ["High-Difficulty Problem Solving"],
+      insights: [
+        `Strongest area: ${Object.entries(selfRatings).sort((a,b)=>b[1]-a[1])[0][0]} (${Object.entries(selfRatings).sort((a,b)=>b[1]-a[1])[0][1]}%)`,
+        `Primary focus area: ${Object.entries(selfRatings).sort((a,b)=>a[1]-b[1])[0][0]} (${Object.entries(selfRatings).sort((a,b)=>a[1]-b[1])[0][1]}%)`
+      ],
+      actionableSteps: [
+        "Dedicated daily practice on identified weak areas",
+        "Take an AI Mock Test to benchmark your self-ratings against AI evaluation"
+      ],
+      companyMatch: {
+        percentage: Math.min(95, Math.max(30, avgScore - 5)),
+        expectedLevel: avgScore >= 75 ? "Senior" : "SDE-1",
+        gaps: weak
+      }
+    };
+
+    updateState({ 
+      readinessScore: avgScore,
+      selfRatings,
+      assessmentMethod: "self_rating",
+      latestAnalysis: analysisData,
+      lastAssessmentDate: new Date().toLocaleDateString(),
+      weakAreas: weak
+    });
+
+    setResults(analysisData);
+    setPageState("RESULTS");
+  };
+
   const updateRoadmap = async () => {
     setPageState("LOADING");
     try {
@@ -175,16 +251,16 @@ export default function AssessmentPage() {
       {/* Tabs Container */}
       <div className="glass-card border border-zinc-800/50 bg-zinc-900/30 rounded-3xl overflow-hidden p-2">
          <div className="flex p-2 bg-black/20 rounded-2xl gap-2">
-            {(["quick", "topic", "full"] as AssessmentType[]).map(t => (
+            {(["quick", "topic", "full", "self"] as AssessmentType[]).map(t => (
               <button
                 key={t}
                 onClick={() => setActiveTab(t)}
                 className={clsx(
-                  "flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+                  "flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-1.5",
                   activeTab === t ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-zinc-300"
                 )}
               >
-                {t === "quick" ? "Quick Check" : t === "topic" ? "Topic Based" : "Full Mock"}
+                {t === "quick" ? "Quick Check" : t === "topic" ? "Topic Based" : t === "full" ? "Full Mock" : "Self Rating"}
               </button>
             ))}
          </div>
@@ -335,6 +411,81 @@ export default function AssessmentPage() {
                   >
                     Start Mock Test <ArrowRight className="w-5 h-5" />
                   </button>
+                </motion.div>
+              )}
+
+              {activeTab === "self" && (
+                <motion.div 
+                  key="self" 
+                  initial={{ opacity: 0, x: -10 }} 
+                  animate={{ opacity: 1, x: 0 }} 
+                  exit={{ opacity: 0, x: 10 }}
+                  className="space-y-8"
+                >
+                  <div className="space-y-2 text-center max-w-lg mx-auto">
+                    <div className="p-3 rounded-full bg-amber-500/10 inline-block mb-1">
+                      <SlidersHorizontal className="w-6 h-6 text-amber-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white">Self-Evaluation & Confidence Rating</h2>
+                    <p className="text-zinc-400 text-xs leading-relaxed">
+                      Rate your current confidence level (0 - 100) across key placement domains. Your readiness score will update directly based on your inputs.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    {DOMAINS_SELF.map((domain) => {
+                      const val = selfRatings[domain.key] ?? 60;
+                      return (
+                        <div key={domain.key} className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h4 className="font-bold text-white text-sm">{domain.label}</h4>
+                              <p className="text-[11px] text-zinc-500">{domain.desc}</p>
+                            </div>
+                            <span className={clsx(
+                              "px-2.5 py-1 rounded-lg text-xs font-bold font-mono",
+                              val >= 80 ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : 
+                              val >= 50 ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : 
+                              "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                            )}>
+                              {val}%
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-4 pt-1">
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={val}
+                              onChange={(e) => setSelfRatings({ ...selfRatings, [domain.key]: Number(e.target.value) })}
+                              className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                            />
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={val}
+                              onChange={(e) => {
+                                const num = Math.min(100, Math.max(0, Number(e.target.value)));
+                                setSelfRatings({ ...selfRatings, [domain.key]: num });
+                              }}
+                              className="w-16 bg-black/40 border border-zinc-800 text-white text-xs font-mono rounded-lg p-1.5 text-center focus:outline-none focus:border-indigo-500"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex justify-center pt-4">
+                    <button 
+                      onClick={handleSelfRatingSubmit}
+                      className="px-12 py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-bold transition-all flex items-center gap-2 shadow-[0_0_20px_-5px_rgba(245,158,11,0.5)] text-sm"
+                    >
+                      <UserCheck className="w-5 h-5" /> Submit Self Evaluation
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

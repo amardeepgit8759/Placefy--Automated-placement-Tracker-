@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Loader2, Target, Trophy, Clock } from "lucide-react";
+import { ArrowRight, Loader2, Target, Trophy, Clock, Code } from "lucide-react";
 import { LevelOptions, RoleOptions, useAppContext } from "@/lib/AppContext";
 import { clsx } from "clsx";
 import CompanySearch from "@/components/CompanySearch";
@@ -13,12 +13,13 @@ const LEVELS: LevelOptions[] = ["Beginner", "Intermediate", "Advanced"];
 
 export default function SetupPage() {
   const router = useRouter();
-  const { updateState } = useAppContext();
+  const { state, updateState } = useAppContext();
 
-  const [role, setRole] = useState<RoleOptions | null>(null);
-  const [level, setLevel] = useState<LevelOptions | null>(null);
-  const [company, setCompany] = useState<string | null>(null);
-  const [timeline, setTimeline] = useState<number>(4);
+  const [role, setRole] = useState<RoleOptions | null>(state.role);
+  const [level, setLevel] = useState<LevelOptions | null>(state.level);
+  const [company, setCompany] = useState<string | null>(state.targetCompany);
+  const [timeline, setTimeline] = useState<number>(state.timelineWeeks || 4);
+  const [leetcodeUsername, setLeetcodeUsername] = useState<string>(state.leetcodeUsername || "");
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerate = async () => {
@@ -42,6 +43,7 @@ export default function SetupPage() {
         level,
         targetCompany: company,
         timelineWeeks: timeline,
+        leetcodeUsername: leetcodeUsername.trim() || null,
         syllabus: data.topics,
         mentorAnalysis: data.mentorAnalysis,
         readinessScore: 0,
@@ -88,6 +90,21 @@ export default function SetupPage() {
               </button>
             ))}
           </div>
+        </section>
+
+        {/* LeetCode Username Input */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Code className="w-4 h-4 text-zinc-400" />
+            <h2 className="text-sm font-medium text-zinc-300">LeetCode Username (Optional)</h2>
+          </div>
+          <input
+            type="text"
+            value={leetcodeUsername}
+            onChange={(e) => setLeetcodeUsername(e.target.value)}
+            placeholder="e.g. leetcode_user"
+            className="w-full bg-zinc-900 border border-zinc-800 text-white text-sm rounded-lg p-3 outline-none focus:border-indigo-500 transition-colors placeholder:text-zinc-600"
+          />
         </section>
 
         {/* Company Selection */}
