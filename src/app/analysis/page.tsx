@@ -19,6 +19,7 @@ import {
   RefreshCw,
   Code
 } from "lucide-react";
+import { evaluateRules } from "@/lib/readinessRules";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart,
@@ -242,6 +243,8 @@ export default function AnalysisPage() {
   }
 
   if (!analysis) return null;
+
+  const ruleResults = evaluateRules(analysis.domainScores, state.role, state.level);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 pb-20">
@@ -546,6 +549,42 @@ export default function AnalysisPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Rule-Based Gap Breakdown */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.65 }}
+        className="glass-card p-6"
+      >
+        <h3 className="text-zinc-200 font-semibold mb-6 flex items-center gap-2">
+          <Target className="w-4 h-4 text-indigo-400" />
+          Rule-Based Gap Breakdown
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {ruleResults.map((result, idx) => (
+            <div key={idx} className="p-4 bg-zinc-900/50 border border-zinc-800/50 rounded-xl space-y-3 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {result.passed ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-amber-500" />
+                  )}
+                  <span className="font-semibold text-zinc-200">{result.domain}</span>
+                </div>
+                <div className="flex flex-col items-end text-xs">
+                  <span className="text-zinc-500">Req: <span className="text-zinc-300 font-mono">{result.required}%</span></span>
+                  <span className="text-zinc-500">Act: <span className={result.passed ? "text-emerald-400 font-mono" : "text-amber-400 font-mono"}>{result.actual}%</span></span>
+                </div>
+              </div>
+              <p className="text-xs text-zinc-400 leading-relaxed pt-2 border-t border-zinc-800/50">
+                {result.explanation}
+              </p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
 
       {/* Smart Insights & Actionable Suggestions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
