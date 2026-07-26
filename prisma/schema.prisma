@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String?
+  createdAt     DateTime @default(now())
+  profile       Profile?
+  assessments   AssessmentResult[]
+}
+
+model Profile {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role                   String?
+  level                  String?
+  targetCompany          String?
+  timelineWeeks          Int?
+  leetcodeUsername       String?
+  readinessScore         Int      @default(0)
+  syllabus               String   @default("[]")   // JSON string
+  roadmap                String   @default("[]")   // JSON string
+  completedTopics        String   @default("[]")   // JSON string
+  completedRoadmapTasks  String   @default("[]")   // JSON string
+  taskCompletionDates    String   @default("{}")   // JSON string
+  revisionPlan           String   @default("[]")   // JSON string
+  weakAreas              String   @default("[]")   // JSON string
+  testFrequency          String?
+  nextTestDueDate        DateTime?
+  lastAssessmentDate     DateTime?
+  updatedAt              DateTime @updatedAt
+}
+
+model AssessmentResult {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String   // "quick" | "topic" | "full" | "self"
+  score             Int
+  level             String
+  domainScores      String   // JSON string
+  strengths         String   // JSON string
+  weaknesses        String   // JSON string
+  companyMatchPct   Int?
+  feedback          String?
+  createdAt         DateTime @default(now())
+}
